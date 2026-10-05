@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Model output for the narrator action. Sent to the model as response_format and checked by bridge.ps1 (D-24, D-29).",
+  "type": "object",
+  "required": ["narration", "highlights"],
+  "additionalProperties": false,
+  "properties": {
+    "narration": { "type": "string", "minLength": 1 },
+    "highlights": { "type": "array", "maxItems": 5, "items": { "type": "string" } }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "LLM bridge request, scripts/lib/bridge.lua -> scripts/bridge/bridge.ps1 (D-24, D-29).",
+  "type": "object",
+  "required": ["schema_version", "id", "action", "created", "prompt", "context"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+    "action": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+    "created": { "type": "string" },
+    "prompt": { "type": "string", "minLength": 1 },
+    "extra": { "type": "string", "maxLength": 500 },
+    "context": { "type": "object" },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "$comment": "Per-run settings from the console (D-54); bridge.ps1 refuses a model that is not in bridge.config.json models.",
+      "properties": {
+        "model": { "type": "string", "pattern": "^[A-Za-z0-9._:/-]{1,128}$" },
+        "reasoningEffort": { "enum": ["low", "medium", "high"] }
+      }
+    },
+    "offline_result": {
+      "type": "object",
+      "$comment": "Test hook: the bridge returns this as the model's output instead of calling the model."
+    }
+  }
+}

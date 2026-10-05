@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Model output for the midi_variation action. Sent to the model as response_format and checked by bridge.ps1 (D-24, D-29). Notes are in quarter notes from the item start (D-26); scripts/lib/midi_take.lua drops or shortens notes past the item end and ends a note where the next note of the same pitch starts.",
+  "type": "object",
+  "required": ["notes", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "notes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "required": ["pitch", "start", "length", "velocity"],
+        "additionalProperties": false,
+        "properties": {
+          "pitch": { "type": "integer", "minimum": 0, "maximum": 127 },
+          "start": { "type": "number", "minimum": 0 },
+          "length": { "type": "number", "exclusiveMinimum": 0 },
+          "velocity": { "type": "integer", "minimum": 1, "maximum": 127 }
+        }
+      }
+    },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 300 }
+  }
+}

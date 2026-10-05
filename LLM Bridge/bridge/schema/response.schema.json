@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "LLM bridge response, scripts/bridge/bridge.ps1 -> scripts/lib/bridge.lua (D-24, D-29). result has already passed schema/<action>.result.schema.json.",
+  "type": "object",
+  "required": ["schema_version", "id", "status", "elapsed_ms"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["ok", "error"] },
+    "action": { "type": "string" },
+    "model": { "type": "string" },
+    "elapsed_ms": { "type": "integer", "minimum": 0 },
+    "usage": { "type": "object" },
+    "result": { "type": "object" },
+    "error": { "type": "string", "minLength": 1 }
+  },
+  "if": { "properties": { "status": { "const": "ok" } } },
+  "then": { "required": ["action", "model", "result"] },
+  "else": { "required": ["error"] }
+}
