@@ -1,5 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="cb-reapack">
+<index version="1" name="cb-reapack" commit="c178aab064aff2790b380c75a05c16bdbc1d0b42">
+  <category name="LLM Bridge">
+    <reapack name="cb_console.lua" type="script" desc="cb console: LLM narrator and MIDI variation">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 cb console\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 One ReaImGui window that sends the open project, or the selected MIDI item, to a language model you run yourself and shows the answer. REAPER stays usable while a request runs.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_console.lua} opens the window, or closes it when it is open.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_narrator.lua} opens it on the Narrator tab: a short description of the project.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_midi_variation.lua} opens it on the MIDI variation tab: one variation of the selected MIDI item, added to the item as a new take.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Needs Windows, PowerShell 7 at its default path, ReaImGui 0.10 or newer (ReaTeam Extensions repository) and an OpenAI-compatible chat endpoint such as Ollama.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Setup: copy {\f1 bridge/bridge.config.example.json} to {\f1 bridge/bridge.config.json} in the same folder and set {\f1 baseUrl} and {\f1 model}. ReaPack never updates or removes your copy. Details in the repository's README.\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/coltonbearden/cb-reapack">Repository</link>
+      </metadata>
+      <version name="0.1.0" author="Colton Bearden" time="2026-10-05T14:30:02Z">
+        <changelog><![CDATA[First release: the cb console window with its Narrator and MIDI variation tabs, and the
+cb_narrator and cb_midi_variation actions that open it on their tab.]]></changelog>
+        <source main="main" platform="windows">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/cb_console.lua</source>
+        <source main="main" platform="windows" file="cb_narrator.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/narrator.lua</source>
+        <source main="main" platform="windows" file="cb_midi_variation.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/midi_variation.lua</source>
+        <source platform="windows" file="lib/bridge.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/bridge.lua</source>
+        <source platform="windows" file="lib/console.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/console.lua</source>
+        <source platform="windows" file="lib/console_ui.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/console_ui.lua</source>
+        <source platform="windows" file="lib/json.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/json.lua</source>
+        <source platform="windows" file="lib/midi_take.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/midi_take.lua</source>
+        <source platform="windows" file="lib/project_summary.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/project_summary.lua</source>
+        <source platform="windows" file="lib/actions/midi_variation.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/actions/midi_variation.lua</source>
+        <source platform="windows" file="lib/actions/narrator.lua">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/lib/actions/narrator.lua</source>
+        <source platform="windows" file="bridge/bridge.ps1">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/bridge/bridge.ps1</source>
+        <source platform="windows" file="bridge/bridge.config.example.json">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/bridge/bridge.config.example.json</source>
+        <source platform="windows" file="bridge/schema/midi_variation.result.schema.json">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/bridge/schema/midi_variation.result.schema.json</source>
+        <source platform="windows" file="bridge/schema/narrator.result.schema.json">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/bridge/schema/narrator.result.schema.json</source>
+        <source platform="windows" file="bridge/schema/request.schema.json">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/bridge/schema/request.schema.json</source>
+        <source platform="windows" file="bridge/schema/response.schema.json">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/bridge/schema/response.schema.json</source>
+        <source platform="windows" file="prompts/midi_variation.md">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/prompts/midi_variation.md</source>
+        <source platform="windows" file="prompts/narrator.md">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/prompts/narrator.md</source>
+      </version>
+    </reapack>
+  </category>
   <metadata>
     <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
