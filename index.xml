@@ -1,2 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="cb-reapack"/>
+<index version="1" name="cb-reapack">
+  <metadata>
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 cb-reapack\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaPack repository for {\b cb console}: a REAPER window that sends the open project, or the selected MIDI item, to a language model you run yourself, and shows the answer. REAPER stays usable while a request runs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The package {\f1 cb_console.lua} (category LLM Bridge) adds three actions:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_console.lua} opens the window, or closes it when it is open.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_narrator.lua} opens it on the Narrator tab. Run describes the project: tempo, tracks, their FX and items, markers and regions.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_midi_variation.lua} opens it on the MIDI variation tab. Run adds one variation of the selected MIDI item to that item as a new take; the original take is kept.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Requirements\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Windows (tested on Windows 11). The bridge runs in a hidden console window through {\f1 conhost.exe --headless}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab PowerShell 7 at its default path, {\f1 C:\\Program Files\\PowerShell\\7\\pwsh.exe} ({\f1 winget install Microsoft.PowerShell}).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ReaImGui 0.10 or newer, from the ReaTeam Extensions repository that ReaPack lists by default.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab An OpenAI-compatible chat completions endpoint, for example {\field{\*\fldinst{HYPERLINK "https://ollama.com"}}{\fldrslt{\ul
+Ollama
+}}}
+ on the same machine.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Install\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab In REAPER: Extensions > ReaPack > Import repositories, and paste {\f1 https://github.com/coltonbearden/cb-reapack/raw/main/index.xml}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Extensions > ReaPack > Browse packages, install {\f1 cb console: LLM narrator and MIDI variation}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Install ReaImGui the same way if it is not installed yet.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The files land in {\f1 <REAPER resource path>\\Scripts\\cb-reapack\\LLM Bridge\\} (Options > Show REAPER resource path in explorer/finder).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Set up the model\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The package ships {\f1 bridge\\bridge.config.example.json}, which points at Ollama on this machine:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
+  "baseUrl": "http://localhost:11434/v1",\line
+  "model": "gpt-oss:20b",\line
+  "models": ["gpt-oss:20b"],\line
+  ...\line
+\}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 With Ollama installed, {\f1 ollama pull gpt-oss:20b} is all it needs. To use another endpoint or model, copy {\f1 bridge.config.example.json} to {\f1 bridge.config.json} in the same folder and edit the copy: {\f1 baseUrl} (the bridge appends {\f1 /chat/completions}), {\f1 model}, and {\f1 models} (the models the window offers). The bridge reads {\f1 bridge.config.json} when it exists and the example otherwise. ReaPack never updates or removes your copy.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If the endpoint needs an API key, put it alone in the file {\f1 %LOCALAPPDATA%\\reaper-bridge\\token}; it is sent as a Bearer token and never logged.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 What is sent and kept\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A request carries a summary of the project (narrator) or the notes of the selected MIDI item (variation), plus the instruction you type. Each request is a folder under {\f1 %LOCALAPPDATA%\\reaper-bridge\\jobs\\} holding {\f1 request.json}, {\f1 response.json} and {\f1 bridge.log}. These folders are kept so a result can be looked at again; delete them whenever you like.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Issues\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Report problems at https://github.com/coltonbearden/cb-reapack/issues\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Licence\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MIT, see {\f1 LICENSE}.\par}
+}
+]]></description>
+  </metadata>
+</index>
