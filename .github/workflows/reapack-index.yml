@@ -1,0 +1,50 @@
+# Builds index.xml with reapack-index on every push to main and commits it back (D-70).
+# Published from the source repository by tools/Publish-ReaPack.ps1; edit it there, not here.
+name: reapack-index
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reapack-index
+  cancel-in-progress: false
+
+jobs:
+  index:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yy pandoc
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+        with:
+          ruby-version: '3.4'
+
+      - name: Install reapack-index
+        run: gem install reapack-index -v 1.2.6 --no-document
+
+      - name: Validate packages
+        run: reapack-index --check --strict
+
+      - name: Update index.xml
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          reapack-index --commit
+          git push origin HEAD:main

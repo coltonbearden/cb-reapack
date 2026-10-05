@@ -1,0 +1,3 @@
+# Byte-exact: every file is published exactly as it is committed in the source repository, and
+# ReaPack downloads those bytes.
+* -text
