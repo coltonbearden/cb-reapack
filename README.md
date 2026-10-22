@@ -1,8 +1,10 @@
 # cb-reapack
 
-ReaPack repository for **cb console**: a REAPER window that sends the open project, or the
-selected MIDI item, to a language model you run yourself, and shows the answer. REAPER stays
-usable while a request runs.
+ReaPack repository for **cb console**, a REAPER window that sends the open project, or the
+selected MIDI item, to a language model you run yourself, and shows the answer (REAPER stays
+usable while a request runs), and for two JSFX: **cb pump** and **cb 808**.
+
+## cb console
 
 The package `cb_console.lua` (category LLM Bridge) adds three actions:
 
@@ -12,7 +14,7 @@ The package `cb_console.lua` (category LLM Bridge) adds three actions:
 - **cb_midi_variation.lua** opens it on the MIDI variation tab. Run adds one variation of the
   selected MIDI item to that item as a new take; the original take is kept.
 
-## Requirements
+### Requirements
 
 - Windows (tested on Windows 11). The bridge runs in a hidden console window through
   `conhost.exe --headless`.
@@ -22,7 +24,7 @@ The package `cb_console.lua` (category LLM Bridge) adds three actions:
 - An OpenAI-compatible chat completions endpoint, for example [Ollama](https://ollama.com) on the
   same machine.
 
-## Install
+### Install
 
 1. In REAPER: Extensions > ReaPack > Import repositories, and paste
    `https://github.com/coltonbearden/cb-reapack/raw/main/index.xml`
@@ -32,7 +34,7 @@ The package `cb_console.lua` (category LLM Bridge) adds three actions:
 The files land in `<REAPER resource path>\Scripts\cb-reapack\LLM Bridge\` (Options > Show REAPER
 resource path in explorer/finder).
 
-## Set up the model
+### Set up the model
 
 The package ships `bridge\bridge.config.example.json`, which points at Ollama on this machine:
 
@@ -52,12 +54,27 @@ never updates or removes your copy.
 If the endpoint needs an API key, put it alone in the file `%LOCALAPPDATA%\reaper-bridge\token`;
 it is sent as a Bearer token and never logged.
 
-## What is sent and kept
+### What is sent and kept
 
 A request carries a summary of the project (narrator) or the notes of the selected MIDI item
 (variation), plus the instruction you type. Each request is a folder under
 `%LOCALAPPDATA%\reaper-bridge\jobs\` holding `request.json`, `response.json` and `bridge.log`. These
 folders are kept so a result can be looked at again; delete them whenever you like.
+
+## JSFX
+
+Two plain JS effects. They need nothing else and run on every platform REAPER runs on.
+
+- **cb pump** (`cb_pump.jsfx`, category Dynamics): a tempo-synced volume shaper, the house and EDM
+  "pump" without sidechain routing. The gain reaches its minimum exactly on the beat and comes
+  back over the release; rate from 1/16T to 1 bar, four shapes, or one dip per MIDI note.
+- **cb 808** (`cb_808.jsfx`, category Instruments): a mono 808 and sub-bass instrument with a
+  pitch drop at the attack, glide, drive and a lowpass tone control. Its tail ends in exact
+  silence.
+
+Install them from Extensions > ReaPack > Browse packages as above. They land in
+`<REAPER resource path>\Effects\cb-reapack\Dynamics\` and `Effects\cb-reapack\Instruments\`, and
+show in the FX browser as `JS: cb pump` and `JS: cb 808`.
 
 ## Issues
 
