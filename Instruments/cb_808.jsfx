@@ -1,0 +1,187 @@
+desc:cb 808
+// @author Colton Bearden
+// @version 0.1.0
+// @changelog
+//   First release.
+// @links
+//   Repository https://github.com/coltonbearden/cb-reapack
+// @about
+//   # cb 808
+//
+//   A mono 808 and sub-bass instrument: a sine body with a short pitch drop at the attack, a long
+//   decay and release, an optional click, drive into a saturator and a lowpass tone filter.
+//   Last-note priority with glide. Notes start and retrigger without clicks, and the tail ends in
+//   exact silence.
+//
+//   - **Decay (s)** and **Release (s)**: how long the body sounds while held and after the
+//     note-off.
+//   - **Pitch drop** and **Pitch drop time**: the downward sweep at each new note.
+//   - **Glide (ms)** and **Glide**: the slide time, and whether it applies between overlapping
+//     notes only or always.
+//   - **Click**: a short transient on top of the body.
+//   - **Drive** and **Tone**: saturation, and the lowpass cutoff.
+//   - **Tune**, **Fine**, **Velocity** and **Output**.
+//
+//   Pitch bend covers 12 semitones up and down.
+
+tags: instrument synth bass 808
+// Mono 808/sub instrument (D-82): last-note priority, legato glide (or always), a sine body with a
+// short pitch drop at the attack, long decay plus release, an optional click, drive into a
+// tanh saturator with first-order antiderivative anti-aliasing, then a 2-pole lowpass tone filter.
+// No click at note start or retrigger: the phase only resets from silence and the amplitude ramps
+// from its current level. Every state is flushed to exact zero, so the tail ends in silence.
+// MIDI is sample-accurate and passed on; pitch bend is +-12 semitones; CC 123 releases.
+
+in_pin:none
+out_pin:left output
+out_pin:right output
+
+slider1:decay=1.5<0.05,8,0.01:log>Decay (s)
+slider2:release=0.15<0.005,4,0.001:log>Release (s)
+slider3:drop=12<0,36,0.1>Pitch drop (semitones)
+slider4:drop_ms=40<2,250,0.1>Pitch drop time (ms)
+slider5:glide_ms=80<0,2000,1>Glide (ms)
+slider6:glide_mode=0<0,1,1{Legato only,Always}>Glide
+slider7:click=0<0,100,0.1>Click (%)
+slider8:drive=6<0,36,0.1>Drive (dB)
+slider9:tone=8000<100,20000,1:log>Tone (Hz)
+slider10:coarse=0<-24,24,1>Tune (semitones)
+slider11:fine=0<-100,100,0.1>Fine (cents)
+slider12:vel_sens=100<0,100,0.1>Velocity (%)
+slider13:out_db=-6<-36,12,0.1>Output (dB)
+
+@init
+ext_noinit = 1;            // a held note survives Play; srate-dependent values are set per block
+ext_nodenorm = 1;
+STACK = 0; MAXN = 32;      // held notes, oldest first
+EV = 64; MAXEV = 256;      // this block's MIDI: offset, status, data1, data2
+LN2_12 = log(2) / 12;
+LOG_1000 = log(0.001);
+LOG2 = log(2);
+TINY = 0.000000000000001;  // flush-to-zero threshold (EEL2 has no 1e-15 literals)
+nstack = 0; voice = 0;     // voice: 0 idle, 1 held, 2 releasing
+amp = 0; amp_from = 0; att_i = 0; vel_amp = 1;
+pitch = 0; tgt = 0; glide_left = 0; g_step = 0; have_pitch = 0;
+drop_i = 0; click_i = 0; ph = 0; bend = 0;
+scount = 0; start_at = -1;
+u1 = 0; F1 = 0; ic1 = 0; ic2 = 0;
+
+function th(x) local(e) ( e = exp(-2 * abs(x)); (1 - e) / (1 + e) * (x < 0 ? -1 : 1); );
+// antiderivative of tanh: ln cosh x, in the overflow-free form
+function lncosh(x) local(a) ( a = abs(x); a + log(1 + exp(-2 * a)) - LOG2; );
+
+function stack_remove(n) local(i j) (
+  i = 0; j = 0;
+  loop(nstack,
+    STACK[i] != n ? ( STACK[j] = STACK[i]; j += 1; );
+    i += 1;
+  );
+  nstack = j;
+);
+
+function glide_to(n) (
+  tgt = n;
+  glide_n < 1 ? ( pitch = n; glide_left = 0; ) : ( glide_left = glide_n; g_step = (n - pitch) / glide_n; );
+);
+
+function note_on(n v) (
+  stack_remove(n);
+  nstack < MAXN ? ( STACK[nstack] = n; nstack += 1; );
+  voice == 1 && start_at == scount ? (
+    pitch = n; tgt = n; glide_left = 0;          // a chord: the last note at once, no glide
+  ) : voice == 1 ? (
+    glide_to(n);                                  // legato: no retrigger, no pitch drop
+  ) : (
+    amp == 0 ? ph = 0;                            // phase restarts only from silence
+    amp_from = amp; att_i = 0; voice = 1; start_at = scount;
+    vel_amp = 1 - vel_sens / 100 + vel_sens / 100 * v / 127;
+    drop_i = 0; click_i = 0;
+    glide_mode == 1 && have_pitch ? glide_to(n) : ( pitch = n; tgt = n; glide_left = 0; );
+  );
+  have_pitch = 1;
+);
+
+function note_off(n) local(top) (
+  top = nstack > 0 && STACK[nstack - 1] == n;
+  stack_remove(n);
+  nstack == 0 ? (
+    voice == 1 ? voice = 2;
+  ) : top && voice == 1 ? (
+    glide_to(STACK[nstack - 1]);                  // back to the previous held note
+  );
+);
+
+@block
+c_decay = exp(LOG_1000 / (decay * srate));
+c_rel = exp(LOG_1000 / (release * srate));
+att_n = 0.001 * srate;
+drop_n = drop_ms * 0.001 * srate;
+glide_n = glide_ms * 0.001 * srate;
+click_n = 0.003 * srate;
+gain_out = 10 ^ (out_db / 20);
+dg = 10 ^ (drive / 20);
+norm = 1 / th(dg);
+sg = tan($pi * min(tone, 0.45 * srate) / srate);   // SVF lowpass, k = 1/Q, Q = 0.707
+sk = sqrt(2);
+sa1 = 1 / (1 + sg * (sg + sk)); sa2 = sg * sa1; sa3 = sg * sa2;
+nev = 0;
+while (midirecv(ofs, m1, m2, m3)) (
+  nev < MAXEV ? ( EV[nev * 4] = ofs; EV[nev * 4 + 1] = m1; EV[nev * 4 + 2] = m2; EV[nev * 4 + 3] = m3; nev += 1; );
+  midisend(ofs, m1, m2, m3);
+);
+ev_i = 0; spos = 0;
+
+@sample
+while (ev_i < nev && EV[ev_i * 4] <= spos) (
+  st = EV[ev_i * 4 + 1] & $xF0; d1 = EV[ev_i * 4 + 2]; d2 = EV[ev_i * 4 + 3];
+  st == $x90 && d2 > 0 ? note_on(d1, d2) :
+  st == $x80 || st == $x90 ? note_off(d1) :
+  st == $xE0 ? bend = (d2 * 128 + d1 - 8192) / 8192 * 12 :
+  st == $xB0 && d1 == 123 ? ( nstack = 0; voice == 1 ? voice = 2; );
+  ev_i += 1;
+);
+
+x = 0;
+voice > 0 ? (
+  glide_left > 0 ? ( pitch += g_step; glide_left -= 1; glide_left <= 0 ? pitch = tgt; );
+  dr = 0;
+  drop_i < drop_n ? ( t = 1 - drop_i / drop_n; dr = drop * t * t * t; drop_i += 1; );
+  f = 440 * exp((pitch + dr + bend + coarse + fine / 100 - 69) * LN2_12);
+  ph += f / srate;
+  ph >= 1 ? ph -= 1;
+  voice == 1 && att_i < att_n ? (
+    amp = amp_from + (vel_amp - amp_from) * (0.5 - 0.5 * cos($pi * att_i / att_n));
+    att_i += 1;
+  ) : amp > 0.00001 ? (
+    amp *= voice == 1 ? c_decay : c_rel;
+  ) : (
+    amp = max(amp - 0.0000001, 0);                // last -100 dB: a short linear run to exact zero
+    amp == 0 && voice == 2 ? voice = 0;
+  );
+  x = sin(2 * $pi * ph) * amp;
+  click_i < click_n ? (
+    x += sin(2 * $pi * 1500 * click_i / srate) * (0.5 - 0.5 * cos(2 * $pi * click_i / click_n)) * click / 100 * vel_amp;
+    click_i += 1;
+  );
+);
+
+u = x * dg;
+du = u - u1;
+Fu = lncosh(u);
+y = abs(du) > 0.000001 ? (Fu - F1) / du : th((u + u1) / 2);
+u1 = u; F1 = Fu;
+y *= norm;
+v3 = y - ic2;
+v1 = sa1 * ic1 + sa2 * v3;
+v2 = ic2 + sa2 * ic1 + sa3 * v3;
+ic1 = 2 * v1 - ic1;
+ic2 = 2 * v2 - ic2;
+abs(ic1) < TINY ? ic1 = 0;
+abs(ic2) < TINY ? ic2 = 0;
+abs(u1) < TINY ? ( u1 = 0; F1 = 0; );
+out = v2 * gain_out;
+abs(out) < TINY ? out = 0;
+spl0 = out;
+spl1 = out;
+spos += 1;
+scount += 1;
