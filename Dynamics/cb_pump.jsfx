@@ -1,0 +1,171 @@
+desc:cb pump
+// @author Colton Bearden
+// @version 0.1.0
+// @changelog
+//   First release.
+// @links
+//   Repository https://github.com/coltonbearden/cb-reapack
+// @about
+//   # cb pump
+//
+//   A tempo-synced volume shaper: the house and EDM "pump" without sidechain routing. The gain
+//   reaches its minimum exactly on each period start (the beat, at 1/4) and recovers over the
+//   release share of the period. Zero latency, stereo-linked, and unity while the transport is
+//   stopped.
+//
+//   - **Rate**: 1/16T to 1 bar, with dotted and triplet values.
+//   - **Depth**: how far the gain dips; 0 % leaves the signal bit for bit unchanged.
+//   - **Shape**: Duck, Linear, Exponential or Gate.
+//   - **Release**: the share of the period the gain takes to come back.
+//   - **Phase offset**: moves the dip within the period.
+//   - **Trigger**: tempo sync, or one dip per MIDI note-on. MIDI passes through.
+
+tags: utility dynamics volume sidechain
+// Tempo-synced volume shaper: the house/EDM "pump" without sidechain routing (D-81).
+// The gain reaches its minimum exactly on each period start (the beat at 1/4) through a 2 ms
+// raised-cosine attack, then recovers over the release share of the period. Zero latency,
+// stereo-linked. While the transport is stopped or paused the gain goes back to unity.
+// MIDI note retrigger: every note-on starts one curve (the minimum lands 2 ms after the note);
+// all MIDI is passed on. The gain reduction shows in REAPER's GR meter (ext_gr_meter); gmem
+// "cb_pump" holds [0] the gain and [1] a block counter, for scripts (GainReduction_dB does not
+// report JSFX meters).
+
+options:gmem=cb_pump
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+slider1:rate=7<0,12,1{1/16T,1/16,1/16D,1/8T,1/8,1/8D,1/4T,1/4,1/4D,1/2T,1/2,1/2D,1 bar}>Rate
+slider2:depth=75<0,100,0.1>Depth (%)
+slider3:shape=0<0,3,1{Duck,Linear,Exponential,Gate}>Shape
+slider4:release=50<5,100,0.1>Release (% of period)
+slider5:phase=0<0,100,0.1>Phase offset (%)
+slider6:retrig=0<0,1,1{Tempo sync,MIDI note retrigger}>Trigger
+
+@init
+ext_nodenorm = 1;          // no anti-denormal noise: depth 0 is bit-transparent
+ext_gr_meter = 0;
+ATTACK_S = 0.002;          // the ramp into each minimum
+MIN_REC_S = 0.008;         // recovery floor: keeps every shape's slope under the ramp's
+EXP_K = 5;
+EXP_END = exp(-EXP_K);
+NOTES = 0;                 // memory: sample offsets of this block's note-ons
+MAX_NOTES = 64;
+g = 1;                     // output gain; unity is what plays while stopped
+d_s = depth / 100;         // smoothed depth starts at its target
+d_coef = 1 - exp(-1 / (0.02 * srate));
+lim = 0.02 * 48000 / srate;   // slew limit per sample: above the designed curve (0.0164 at 48 kHz)
+a = 0.004; L = 0.5;        // attack and recovery as fractions of the period, set per block
+ph = 0;
+midi_idle = 1; wrapped = 0;
+
+// Duck envelope over one period, 0..1, x = phase in [0,1). 1 exactly at x = 0.
+function env(x) local(t) (
+  x >= 1 - a ? (
+    t = (x - (1 - a)) / a;
+    0.5 - 0.5 * cos($pi * t);
+  ) : x < L ? (
+    t = x / L;
+    shape == 0 ? (1 - t) * (1 - t) :
+    shape == 1 ? 1 - t :
+    shape == 2 ? (exp(-EXP_K * t) - EXP_END) / (1 - EXP_END) :
+    1;
+  ) : shape == 3 && x < L + a ? (
+    0.5 + 0.5 * cos($pi * (x - L) / a);
+  ) : 0;
+);
+
+function rate_qn(r) local(m) (
+  r == 12 ? ts_num * 4 / ts_denom : (
+    m = r % 3;
+    0.25 * 2 ^ floor(r / 3) * (m == 0 ? 2 / 3 : m == 1 ? 1 : 1.5);
+  );
+);
+
+function rate_name(r) (
+  r == 0 ? "1/16T" : r == 1 ? "1/16" : r == 2 ? "1/16D" : r == 3 ? "1/8T" : r == 4 ? "1/8" :
+  r == 5 ? "1/8D" : r == 6 ? "1/4T" : r == 7 ? "1/4" : r == 8 ? "1/4D" : r == 9 ? "1/2T" :
+  r == 10 ? "1/2" : r == 11 ? "1/2D" : "1 bar";
+);
+
+function shape_name(s) ( s == 0 ? "Duck" : s == 1 ? "Linear" : s == 2 ? "Exponential" : "Gate"; );
+
+@block
+ext_gr_meter = 20 * log10(max(g, 0.000001));   // the gain at the end of the last block
+gmem[0] = g;
+gmem[1] += 1;
+playing = play_state == 1 || play_state == 5;
+P = rate_qn(rate);
+p_samples = P * 60 / tempo * srate;
+dph = 1 / p_samples;
+a = min(ATTACK_S * srate / p_samples, 0.25);
+L = min(max(release / 100, MIN_REC_S * srate / p_samples), 1 - 2 * a);
+retrig == 0 ? (
+  ph = beat_position / P - phase / 100;
+  ph -= floor(ph);
+) : (
+  nnotes = 0;
+  while (midirecv(ofs, m1, m2, m3)) (
+    (m1 & $xF0) == $x90 && m3 > 0 && nnotes < MAX_NOTES ? (
+      NOTES[nnotes] = ofs;
+      nnotes += 1;
+    );
+    midisend(ofs, m1, m2, m3);
+  );
+  next_note = 0;
+);
+spos = 0;
+
+@sample
+playing ? (
+  retrig == 0 ? (
+    e = env(ph);
+    ph += dph;
+    ph >= 1 ? ph -= 1;
+  ) : (
+    while (next_note < nnotes && NOTES[next_note] <= spos) (
+      ph = 1 - a; midi_idle = 0; wrapped = 0;
+      next_note += 1;
+    );
+    midi_idle ? e = 0 : (
+      e = env(ph);
+      ph += dph;
+      ph >= 1 ? ( ph -= 1; wrapped = 1; );
+      wrapped && ph >= 1 - a ? ( midi_idle = 1; ph = 1 - a; );
+    );
+  );
+  target = 1 - d_s * e;
+) : (
+  target = 1;
+);
+d_s += (depth / 100 - d_s) * d_coef;
+abs(depth / 100 - d_s) < 0.000000001 ? d_s = depth / 100;   // EEL2 has no 1e-9 literals
+step = target - g;
+step > lim ? step = lim : step < -lim ? step = -lim;
+g += step;
+spl0 *= g;
+spl1 *= g;
+spos += 1;
+
+@gfx 480 200
+gfx_clear = 20 + 20 * 256 + 24 * 65536;
+mg = 12;
+pw = gfx_w - 2 * mg;
+pht = gfx_h - 2 * mg - 16;
+gfx_set(0.3, 0.3, 0.35);
+gfx_line(mg, mg + pht, mg + pw, mg + pht);
+gfx_set(0.35, 0.8, 0.95);
+gfx_x = mg; gfx_y = mg + pht * depth / 100 * env(0);
+i = 0;
+loop(pw + 1,
+  gfx_lineto(mg + i, mg + pht * depth / 100 * env(i / pw), 1);
+  i += 1;
+);
+gfx_set(1, 0.6, 0.2);
+gfx_line(mg + ph * pw, mg, mg + ph * pw, mg + pht);
+gfx_set(0.8, 0.8, 0.8);
+gfx_x = mg; gfx_y = gfx_h - 16;
+sprintf(#label, "%s  %s  depth %d%%  release %d%%%s", rate_name(rate), shape_name(shape), depth, release,
+  retrig == 1 ? "  MIDI retrigger" : "");
+gfx_drawstr(#label);
