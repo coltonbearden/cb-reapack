@@ -1,5 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="cb-reapack" commit="c178aab064aff2790b380c75a05c16bdbc1d0b42">
+<index version="1" name="cb-reapack" commit="b30df22b4bc43c4721a1f4afa56c696dac5bc439">
+  <category name="Dynamics">
+    <reapack name="cb_pump.jsfx" type="effect" desc="cb pump">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 cb pump\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A tempo-synced volume shaper: the house and EDM "pump" without sidechain routing. The gain reaches its minimum exactly on each period start (the beat, at 1/4) and recovers over the release share of the period. Zero latency, stereo-linked, and unity while the transport is stopped.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Rate}: 1/16T to 1 bar, with dotted and triplet values.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Depth}: how far the gain dips; 0 % leaves the signal bit for bit unchanged.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Shape}: Duck, Linear, Exponential or Gate.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Release}: the share of the period the gain takes to come back.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Phase offset}: moves the dip within the period.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Trigger}: tempo sync, or one dip per MIDI note-on. MIDI passes through.\sa180\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/coltonbearden/cb-reapack">Repository</link>
+      </metadata>
+      <version name="0.1.0" author="Colton Bearden" time="2026-10-22T05:44:59Z">
+        <changelog><![CDATA[First release.]]></changelog>
+        <source>https://github.com/coltonbearden/cb-reapack/raw/7ed8e279b4d9dbe66cfe6244b49db53ac9bd4f96/Dynamics/cb_pump.jsfx</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Instruments">
+    <reapack name="cb_808.jsfx" type="effect" desc="cb 808">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 cb 808\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A mono 808 and sub-bass instrument: a sine body with a short pitch drop at the attack, a long decay and release, an optional click, drive into a saturator and a lowpass tone filter. Last-note priority with glide. Notes start and retrigger without clicks, and the tail ends in exact silence.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Decay (s)} and {\b Release (s)}: how long the body sounds while held and after the note-off.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Pitch drop} and {\b Pitch drop time}: the downward sweep at each new note.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Glide (ms)} and {\b Glide}: the slide time, and whether it applies between overlapping notes only or always.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Click}: a short transient on top of the body.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Drive} and {\b Tone}: saturation, and the lowpass cutoff.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Tune}, {\b Fine}, {\b Velocity} and {\b Output}.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Pitch bend covers 12 semitones up and down.\par}
+}
+]]></description>
+        <link rel="website" href="https://github.com/coltonbearden/cb-reapack">Repository</link>
+      </metadata>
+      <version name="0.1.0" author="Colton Bearden" time="2026-10-22T05:44:59Z">
+        <changelog><![CDATA[First release.]]></changelog>
+        <source>https://github.com/coltonbearden/cb-reapack/raw/b30df22b4bc43c4721a1f4afa56c696dac5bc439/Instruments/cb_808.jsfx</source>
+      </version>
+    </reapack>
+  </category>
   <category name="LLM Bridge">
     <reapack name="cb_console.lua" type="script" desc="cb console: LLM narrator and MIDI variation">
       <metadata>
@@ -41,6 +92,30 @@ cb_narrator and cb_midi_variation actions that open it on their tab.]]></changel
         <source platform="windows" file="prompts/midi_variation.md">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/prompts/midi_variation.md</source>
         <source platform="windows" file="prompts/narrator.md">https://github.com/coltonbearden/cb-reapack/raw/c178aab064aff2790b380c75a05c16bdbc1d0b42/LLM%20Bridge/prompts/narrator.md</source>
       </version>
+      <version name="0.1.1" author="Colton Bearden" time="2026-10-22T05:44:59Z">
+        <changelog><![CDATA[The bridge rejects a model answer that breaks its schema again: PowerShell 7.6's Test-Json
+reports a violation nested inside an object or array item without a message, and the check
+now fails closed.]]></changelog>
+        <source main="main" platform="windows">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/cb_console.lua</source>
+        <source main="main" platform="windows" file="cb_narrator.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/narrator.lua</source>
+        <source main="main" platform="windows" file="cb_midi_variation.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/midi_variation.lua</source>
+        <source platform="windows" file="lib/bridge.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/bridge.lua</source>
+        <source platform="windows" file="lib/console.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/console.lua</source>
+        <source platform="windows" file="lib/console_ui.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/console_ui.lua</source>
+        <source platform="windows" file="lib/json.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/json.lua</source>
+        <source platform="windows" file="lib/midi_take.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/midi_take.lua</source>
+        <source platform="windows" file="lib/project_summary.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/project_summary.lua</source>
+        <source platform="windows" file="lib/actions/midi_variation.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/actions/midi_variation.lua</source>
+        <source platform="windows" file="lib/actions/narrator.lua">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/lib/actions/narrator.lua</source>
+        <source platform="windows" file="bridge/bridge.ps1">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/bridge/bridge.ps1</source>
+        <source platform="windows" file="bridge/bridge.config.example.json">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/bridge/bridge.config.example.json</source>
+        <source platform="windows" file="bridge/schema/midi_variation.result.schema.json">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/bridge/schema/midi_variation.result.schema.json</source>
+        <source platform="windows" file="bridge/schema/narrator.result.schema.json">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/bridge/schema/narrator.result.schema.json</source>
+        <source platform="windows" file="bridge/schema/request.schema.json">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/bridge/schema/request.schema.json</source>
+        <source platform="windows" file="bridge/schema/response.schema.json">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/bridge/schema/response.schema.json</source>
+        <source platform="windows" file="prompts/midi_variation.md">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/prompts/midi_variation.md</source>
+        <source platform="windows" file="prompts/narrator.md">https://github.com/coltonbearden/cb-reapack/raw/f0a88bf345138f5858807b8a319830eade237a8d/LLM%20Bridge/prompts/narrator.md</source>
+      </version>
     </reapack>
   </category>
   <metadata>
@@ -49,12 +124,13 @@ cb_narrator and cb_midi_variation actions that open it on their tab.]]></changel
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 cb-reapack\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ReaPack repository for {\b cb console}: a REAPER window that sends the open project, or the selected MIDI item, to a language model you run yourself, and shows the answer. REAPER stays usable while a request runs.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaPack repository for {\b cb console}, a REAPER window that sends the open project, or the selected MIDI item, to a language model you run yourself, and shows the answer (REAPER stays usable while a request runs), and for two JSFX: {\b cb pump} and {\b cb 808}.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 cb console\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The package {\f1 cb_console.lua} (category LLM Bridge) adds three actions:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_console.lua} opens the window, or closes it when it is open.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_narrator.lua} opens it on the Narrator tab. Run describes the project: tempo, tracks, their FX and items, markers and regions.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb_midi_variation.lua} opens it on the MIDI variation tab. Run adds one variation of the selected MIDI item to that item as a new take; the original take is kept.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Requirements\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Requirements\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Windows (tested on Windows 11). The bridge runs in a hidden console window through {\f1 conhost.exe --headless}.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab PowerShell 7 at its default path, {\f1 C:\\Program Files\\PowerShell\\7\\pwsh.exe} ({\f1 winget install Microsoft.PowerShell}).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ReaImGui 0.10 or newer, from the ReaTeam Extensions repository that ReaPack lists by default.\par}
@@ -62,12 +138,12 @@ cb_narrator and cb_midi_variation actions that open it on their tab.]]></changel
 Ollama
 }}}
  on the same machine.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Install\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Install\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab In REAPER: Extensions > ReaPack > Import repositories, and paste {\f1 https://github.com/coltonbearden/cb-reapack/raw/main/index.xml}\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Extensions > ReaPack > Browse packages, install {\f1 cb console: LLM narrator and MIDI variation}.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Install ReaImGui the same way if it is not installed yet.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The files land in {\f1 <REAPER resource path>\\Scripts\\cb-reapack\\LLM Bridge\\} (Options > Show REAPER resource path in explorer/finder).\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Set up the model\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Set up the model\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The package ships {\f1 bridge\\bridge.config.example.json}, which points at Ollama on this machine:\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 \{\line
   "baseUrl": "http://localhost:11434/v1",\line
@@ -77,8 +153,13 @@ Ollama
 \}\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 With Ollama installed, {\f1 ollama pull gpt-oss:20b} is all it needs. To use another endpoint or model, copy {\f1 bridge.config.example.json} to {\f1 bridge.config.json} in the same folder and edit the copy: {\f1 baseUrl} (the bridge appends {\f1 /chat/completions}), {\f1 model}, and {\f1 models} (the models the window offers). The bridge reads {\f1 bridge.config.json} when it exists and the example otherwise. ReaPack never updates or removes your copy.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 If the endpoint needs an API key, put it alone in the file {\f1 %LOCALAPPDATA%\\reaper-bridge\\token}; it is sent as a Bearer token and never logged.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 What is sent and kept\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 What is sent and kept\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 A request carries a summary of the project (narrator) or the notes of the selected MIDI item (variation), plus the instruction you type. Each request is a folder under {\f1 %LOCALAPPDATA%\\reaper-bridge\\jobs\\} holding {\f1 request.json}, {\f1 response.json} and {\f1 bridge.log}. These folders are kept so a result can be looked at again; delete them whenever you like.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 JSFX\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Two plain JS effects. They need nothing else and run on every platform REAPER runs on.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb pump} ({\f1 cb_pump.jsfx}, category Dynamics): a tempo-synced volume shaper, the house and EDM "pump" without sidechain routing. The gain reaches its minimum exactly on the beat and comes back over the release; rate from 1/16T to 1 bar, four shapes, or one dip per MIDI note.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b cb 808} ({\f1 cb_808.jsfx}, category Instruments): a mono 808 and sub-bass instrument with a pitch drop at the attack, glide, drive and a lowpass tone control. Its tail ends in exact silence.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Install them from Extensions > ReaPack > Browse packages as above. They land in {\f1 <REAPER resource path>\\Effects\\cb-reapack\\Dynamics\\} and {\f1 Effects\\cb-reapack\\Instruments\\}, and show in the FX browser as {\f1 JS: cb pump} and {\f1 JS: cb 808}.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Issues\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Report problems at https://github.com/coltonbearden/cb-reapack/issues\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Licence\par}
