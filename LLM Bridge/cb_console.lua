@@ -1,9 +1,10 @@
 -- @description cb console: LLM narrator and MIDI variation
 -- @author Colton Bearden
--- @version 0.1.0
+-- @version 0.1.1
 -- @changelog
---   First release: the cb console window with its Narrator and MIDI variation tabs, and the
---   cb_narrator and cb_midi_variation actions that open it on their tab.
+--   The bridge rejects a model answer that breaks its schema again: PowerShell 7.6's Test-Json
+--   reports a violation nested inside an object or array item without a message, and the check
+--   now fails closed.
 -- @provides
 --   [windows] .
 --   [main windows] narrator.lua > cb_narrator.lua

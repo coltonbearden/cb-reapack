@@ -48,12 +48,16 @@ function Get-Prop($Object, [string]$Name) {
     if ($p) { $p.Value } else { $null }
 }
 
-# Messages for every way $Json fails the schema in $SchemaFile; empty when it passes.
+# Messages for every way $Json fails the schema in $SchemaFile; empty only when it passes.
+# PowerShell 7.6 returns $false for a schema violation without an error record, so a failure
+# always yields at least one message (fails closed).
 function Get-SchemaError([string]$Json, [string]$SchemaFile) {
     $errs = $null
     $ok = Test-Json -Json $Json -Schema ([System.IO.File]::ReadAllText($SchemaFile)) -ErrorAction SilentlyContinue -ErrorVariable errs
     if ($ok) { return @() }
-    @($errs | ForEach-Object { $_.Exception.Message -replace '^The JSON is not valid with the schema: ', '' })
+    $msgs = @($errs | ForEach-Object { $_.Exception.Message -replace '^The JSON is not valid with the schema: ', '' })
+    if ($msgs.Count -eq 0) { $msgs = @("does not match $(Split-Path -Leaf $SchemaFile) (Test-Json gave no detail)") }
+    $msgs
 }
 
 function Write-Response([System.Collections.IDictionary]$Response) {
