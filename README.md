@@ -52,14 +52,67 @@ offers). The bridge reads `bridge.config.json` when it exists and the example ot
 never updates or removes your copy.
 
 If the endpoint needs an API key, put it alone in the file `%LOCALAPPDATA%\reaper-bridge\token`;
-it is sent as a Bearer token and never logged.
+it is sent as a Bearer token to that endpoint only, and never logged.
+
+### Claude models (optional)
+
+cb console can also ask Anthropic's Claude models, billed to your own API key from the
+[Claude Console](https://platform.claude.com/). Nothing about them is switched on by the package:
+the example config lists Ollama only.
+
+1. Store your key. In a PowerShell 7 window:
+
+       pwsh -NoProfile -File "<REAPER resource path>\Scripts\cb-reapack\LLM Bridge\bridge\Set-BridgeKey.ps1"
+
+   It asks for the key at a hidden prompt and keeps it encrypted to your Windows user (DPAPI) in
+   `%LOCALAPPDATA%\reaper-bridge\anthropic.key`, then checks it against the API's model list,
+   which costs nothing. `-Status` says whether a key is stored, `-Probe` checks it again, `-Remove`
+   deletes it, and `-FromStdin` reads it from a password manager's command line instead of the
+   prompt. The key is never printed, logged or written into a job folder.
+2. List the models in your own `bridge.config.json`. A model entry may be an object that names its
+   provider and carries its own settings:
+
+       {
+         "providers": {
+           "ollama": { "baseUrl": "http://localhost:11434/v1" },
+           "anthropic": {}
+         },
+         "model": "gpt-oss:20b",
+         "models": [
+           "gpt-oss:20b",
+           { "id": "claude-sonnet-5-5", "provider": "anthropic", "reasoningEffort": "high",
+             "maxTokens": 16000, "price": { "inputPerMTok": 2, "outputPerMTok": 10 } }
+         ],
+         ...the rest as in the example
+       }
+
+   Set `model` to a Claude model's id to make it the default.
+
+   - `reasoningEffort` (low, medium, high) becomes Claude's effort setting; the window's Reasoning
+     effort picker marks each model's own default.
+   - `maxTokens` counts Claude's thinking too, so give it room (16000 is plenty here).
+   - `httpTimeoutSeconds` is how long the bridge waits for that model; the window gives up 10 s
+     later. Models without one wait 50 s, as before. In the author's measurements (2026-10-22,
+     567 runs) Claude Opus, Sonnet and Haiku 5.5 always answered within 31 s, so they need none; a
+     large local model may.
+   - `price` (USD per million input and output tokens, from
+     [Anthropic's pricing page](https://platform.claude.com/docs/en/about-claude/pricing)) is used
+     only for the cost estimate.
+   - `actions` overrides any of these for one action, as the top-level `actions` does.
+   - `temperature` is not sent to Claude models.
+   - A top-level `baseUrl`, as in the example, still works for Ollama.
+
+The window lists a Claude model only while a key is stored. If a Claude model is picked anyway (as
+the default model, say) with no key stored, the status line says so and nothing is sent.
 
 ### What is sent and kept
 
 A request carries a summary of the project (narrator) or the notes of the selected MIDI item
-(variation), plus the instruction you type. Each request is a folder under
-`%LOCALAPPDATA%\reaper-bridge\jobs\` holding `request.json`, `response.json` and `bridge.log`. These
-folders are kept so a result can be looked at again; delete them whenever you like.
+(variation), plus the instruction you type. With a Claude model the same request goes to Anthropic's
+API under your key. Each request is a folder under `%LOCALAPPDATA%\reaper-bridge\jobs\` holding
+`request.json`, `response.json` and `bridge.log`; the response and the log record the provider, the
+tokens and an estimated cost, which the window's log shows too. These folders are kept so a result
+can be looked at again; delete them whenever you like.
 
 ## JSFX
 
