@@ -54,11 +54,30 @@ local function contains(list, value)
   return false
 end
 
--- opts: { actions = { <module>, ... }, jobs_dir?, timeout_s?, memory? (true: load and save ExtState) }
+-- What the status line says when a Claude model is picked and no key is stored (D-95).
+function M.no_key_message(model, config)
+  return string.format("%s is a Claude model, and no Anthropic API key is stored (%s). To store one, run bridge\\Set-BridgeKey.ps1 from the cb console folder; the README explains how.",
+    tostring(model), tostring(bridge.key_file(config) or "LOCALAPPDATA is not set"))
+end
+
+-- The tokens and the estimated cost of a reply (D-94), as one log line; nil for an offline answer
+-- or a response without a cost.
+function M.cost_line(response)
+  local cost = type(response) == "table" and response.cost or nil
+  if type(cost) ~= "table" or response.provider == "offline" then return nil end
+  local tokens = string.format("%d tokens in, %d out", tonumber(cost.input_tokens) or 0, tonumber(cost.output_tokens) or 0)
+  if cost.usd == 0 then return tokens .. ", no cost (local model)" end
+  if type(cost.usd) == "number" then return string.format("%s, about $%.4f", tokens, cost.usd) end
+  return tokens .. ", cost unknown (the config gives this model no price)"
+end
+
+-- opts: { actions = { <module>, ... }, jobs_dir?, timeout_s? (else each model's own, D-93),
+-- memory? (true: load and save ExtState), config? (a config table instead of bridge.config()) }
 function M.new(opts)
-  local c = setmetatable({ order = {}, actions = {}, tabs = {}, jobs_dir = opts.jobs_dir, timeout_s = opts.timeout_s or bridge.TIMEOUT_S, memory = opts.memory }, Console)
-  local config, err = bridge.config()
-  c.config_error = err
+  local c = setmetatable({ order = {}, actions = {}, tabs = {}, jobs_dir = opts.jobs_dir, timeout_s = opts.timeout_s, memory = opts.memory }, Console)
+  local config, err = opts.config, nil
+  if not config then config, err = bridge.config() end
+  c.config, c.config_error = config, err
   for _, action in ipairs(opts.actions) do
     local s = config and bridge.settings(action.name, config) or { models = {} }
     c.order[#c.order + 1] = action.name
@@ -93,10 +112,22 @@ function Console:recall(name)
   if effort and contains(M.EFFORTS, effort) then tab.effort = effort end
 end
 
--- Sets a tab's "extra", "model" or "effort", and remembers it when the console has memory.
+-- The reasoning effort `model` runs with on tab `name` unless another is picked (bridge.settings:
+-- the config, the action's entry, the model's entries). nil without a config.
+function Console:default_effort(name, model)
+  if not self.config then return nil end
+  return bridge.settings(name, self.config, model).reasoningEffort
+end
+
+-- Sets a tab's "extra", "model" or "effort", and remembers it when the console has memory. A new
+-- model brings its own default effort along, unless the effort was picked away from the default.
 function Console:set(name, key, value)
   local tab = self.tabs[name]
   assert(key == "extra" or key == "model" or key == "effort", "unknown field " .. tostring(key))
+  if key == "model" and tab.effort == self:default_effort(name, tab.model) then
+    local effort = self:default_effort(name, value)
+    if effort and effort ~= tab.effort then self:set(name, "effort", effort) end
+  end
   tab[key] = value
   if self.memory then reaper.SetExtState(M.SECTION, name .. "." .. key, json.encode(value), true) end
 end
@@ -118,6 +149,8 @@ function Console:start(name, opts)
   tab.log, tab.result = {}, {}
   local extra, model, effort = opts.extra or tab.extra, opts.model or tab.model, opts.effort or tab.effort
   if #extra > M.MAX_EXTRA then return fail(tab, "error", string.format("the instruction has %d characters; the limit is %d", #extra, M.MAX_EXTRA)) end
+  local s = self.config and bridge.settings(name, self.config, model) or nil
+  if s and s.provider == "anthropic" and not bridge.key_present(self.config) then return fail(tab, "error", M.no_key_message(model, self.config)) end
 
   local ok, run, err = pcall(action.build_request, { extra = extra })
   if not ok then return fail(tab, "error", tostring(run)) end
@@ -125,11 +158,11 @@ function Console:start(name, opts)
   run.spec.options = { model = model, reasoningEffort = effort }
   run.spec.offline_result = opts.offline_result
 
-  local job, serr = bridge.start(run.spec, { jobs_dir = self.jobs_dir, timeout_s = self.timeout_s })
+  local job, serr = bridge.start(run.spec, { jobs_dir = self.jobs_dir, timeout_s = self.timeout_s or (s and s.timeout_s) })
   if not job then return fail(tab, "error", "the bridge did not start: " .. tostring(serr)) end
   tab.job, tab.run, tab.state, tab.next_poll = job, run, "running", 0
   tab.log = { "job " .. job.id, string.format("model %s, reasoning effort %s", tostring(model), tostring(effort)) }
-  tab.status = string.format("waiting for the model, 0 s (gives up at %g s)", self.timeout_s)
+  tab.status = string.format("waiting for the model, 0 s (gives up at %g s)", job.timeout_s)
   return true
 end
 
@@ -168,10 +201,12 @@ function Console:tick(now)
         status = tab.job:poll()
       end
       if status == "pending" then
-        tab.status = string.format("waiting for the model, %d s (gives up at %g s)", math.floor(tab.job:elapsed()), self.timeout_s)
+        tab.status = string.format("waiting for the model, %d s (gives up at %g s)", math.floor(tab.job:elapsed()), tab.job.timeout_s)
       else
         tab.elapsed = tab.job:elapsed()
         if status == "ok" then finish_ok(self, tab) else fail(tab, status, tostring(tab.job.error)) end
+        local line = M.cost_line(tab.job.response)
+        if line then tab.log[#tab.log + 1] = line end
       end
     end
   end

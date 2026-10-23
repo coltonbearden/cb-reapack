@@ -50,7 +50,7 @@ local function draw_tab(ImGui, ctx, c, tab, state)
   if model then c:set(tab.name, "model", model) end
   ImGui.SameLine(ctx)
   ImGui.SetNextItemWidth(ctx, 150)
-  local effort = picker(ImGui, ctx, "Reasoning effort", tab.effort, console.EFFORTS, tab.default_effort)
+  local effort = picker(ImGui, ctx, "Reasoning effort", tab.effort, console.EFFORTS, c:default_effort(tab.name, tab.model) or tab.default_effort)
   if effort then c:set(tab.name, "effort", effort) end
 
   ImGui.BeginDisabled(ctx, running or too_long)

@@ -61,24 +61,96 @@ function M.config()
   return config
 end
 
--- What an action runs with unless the request overrides it: the config, then its
--- actions.<action> entry, as bridge.ps1 merges them (D-31, D-54). `models` is the config's list
--- of models a request may ask for.
-function M.settings(action, config)
-  local s = { model = config.model, reasoningEffort = config.reasoningEffort, temperature = config.temperature, maxTokens = config.maxTokens }
-  local override = type(config.actions) == "table" and config.actions[action] or nil
-  if type(override) == "table" then
-    for _, key in ipairs({ "temperature", "maxTokens", "reasoningEffort" }) do
-      if override[key] ~= nil then s[key] = override[key] end
-    end
-  end
-  s.models = type(config.models) == "table" and config.models or { config.model }
-  return s
+-- %LOCALAPPDATA%\reaper-bridge: job folders, the Ollama token and the stored key (D-91).
+function M.data_dir()
+  local home = os.getenv("LOCALAPPDATA")
+  return home and (home .. "\\reaper-bridge") or nil
 end
 
 function M.default_jobs_dir()
-  local home = os.getenv("LOCALAPPDATA")
-  return home and (home .. "\\reaper-bridge\\jobs") or nil
+  local dir = M.data_dir()
+  return dir and (dir .. "\\jobs") or nil
+end
+
+-- The config's models as { id, provider, entry } (D-88): a string is an Ollama model, a table
+-- names its provider and may carry its own settings. bridge.ps1's Get-BridgeModels reads the same.
+function M.models(config)
+  local list = type(config.models) == "table" and config.models or { config.model }
+  local out = {}
+  for _, m in ipairs(list) do
+    if type(m) == "string" then
+      out[#out + 1] = { id = m, provider = "ollama" }
+    elseif type(m) == "table" and type(m.id) == "string" then
+      out[#out + 1] = { id = m.id, provider = type(m.provider) == "string" and m.provider or "ollama", entry = m }
+    end
+  end
+  return out
+end
+
+-- The entry of model `id` (M.models), or nil when the config does not list it.
+function M.find_model(config, id)
+  for _, m in ipairs(M.models(config)) do
+    if m.id == id then return m end
+  end
+  return nil
+end
+
+-- The file that holds the Anthropic API key: providers.anthropic.keyFile, an absolute path or a
+-- name under M.data_dir(), by default anthropic.key (D-91; bridge.ps1's Resolve-BridgeFile).
+function M.key_file(config)
+  local p = type(config.providers) == "table" and config.providers.anthropic or nil
+  local v = type(p) == "table" and type(p.keyFile) == "string" and p.keyFile or "anthropic.key"
+  if v:match("^%a:[\\/]") or v:match("^\\\\") then return v end
+  local dir = M.data_dir()
+  return dir and (dir .. "\\" .. v) or nil
+end
+
+function M.key_present(config)
+  local f = M.key_file(config)
+  return f ~= nil and reaper.file_exists(f)
+end
+
+-- The models the console offers (D-95): every Ollama model, and a Claude model only while a key is
+-- stored. bridge.ps1 still accepts every listed model.
+function M.visible_models(config)
+  local ids, key = {}, nil
+  for _, m in ipairs(M.models(config)) do
+    if m.provider == "anthropic" then
+      if key == nil then key = M.key_present(config) end
+      if key then ids[#ids + 1] = m.id end
+    else
+      ids[#ids + 1] = m.id
+    end
+  end
+  return ids
+end
+
+M.TIMEOUT_MARGIN_S = 10   -- D-93: the caller gives up this long after the bridge's own HTTP timeout
+
+-- What an action runs with on `model` (default: the config's model) unless the request overrides
+-- it, merged as bridge.ps1's Resolve-BridgeSettings does: the config, its actions.<action> entry
+-- (D-31), the model's entry, then that entry's actions.<action> (D-88). timeout_s is when the
+-- caller gives up (D-22, D-93); `models` is what the console offers (M.visible_models).
+function M.settings(action, config, model)
+  local s = { model = model or config.model, reasoningEffort = config.reasoningEffort, temperature = config.temperature,
+    maxTokens = config.maxTokens, httpTimeoutSeconds = config.httpTimeoutSeconds, provider = "ollama" }
+  local function apply(from, keys)
+    if type(from) ~= "table" then return end
+    for _, key in ipairs(keys) do
+      if from[key] ~= nil then s[key] = from[key] end
+    end
+  end
+  apply(type(config.actions) == "table" and config.actions[action] or nil, { "temperature", "maxTokens", "reasoningEffort" })
+  local m = M.find_model(config, s.model)
+  if m then
+    s.provider = m.provider
+    local keys = { "temperature", "maxTokens", "reasoningEffort", "httpTimeoutSeconds" }
+    apply(m.entry, keys)
+    apply(m.entry and type(m.entry.actions) == "table" and m.entry.actions[action] or nil, keys)
+  end
+  s.timeout_s = type(s.httpTimeoutSeconds) == "number" and (s.httpTimeoutSeconds + M.TIMEOUT_MARGIN_S) or M.TIMEOUT_S
+  s.models = M.visible_models(config)
+  return s
 end
 
 -- spec: { action, prompt, extra?, context, options?, offline_result? }  opts: { jobs_dir?, timeout_s? }

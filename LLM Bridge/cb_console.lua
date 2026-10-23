@@ -1,17 +1,21 @@
 -- @description cb console: LLM narrator and MIDI variation
 -- @author Colton Bearden
--- @version 0.1.1
+-- @version 0.2.0
 -- @changelog
---   The bridge rejects a model answer that breaks its schema again: PowerShell 7.6's Test-Json
---   reports a violation nested inside an object or array item without a message, and the check
---   now fails closed.
+--   Anthropic's Claude models beside Ollama. List them in your own bridge.config.json and store
+--   your API key with bridge/Set-BridgeKey.ps1, and the model dropdown offers them. The bridge
+--   picks the provider from the model, asks Claude through the Messages API with structured
+--   outputs, and checks the answer against the same schema as before. A Claude model picked with
+--   no key stored says so. Each job folder and bridge.log now record the provider, the tokens and
+--   an estimated cost, also shown in the console's log. Without a Claude entry nothing changes:
+--   the example config stays Ollama only.
 -- @provides
 --   [windows] .
 --   [main windows] narrator.lua > cb_narrator.lua
 --   [main windows] midi_variation.lua > cb_midi_variation.lua
 --   [windows] lib/*.lua
 --   [windows] lib/actions/*.lua
---   [windows] bridge/bridge.ps1
+--   [windows] bridge/*.ps1
 --   [windows] bridge/bridge.config.example.json
 --   [windows] bridge/schema/*.json
 --   [windows] prompts/*.md
@@ -29,7 +33,8 @@
 --     selected MIDI item, added to the item as a new take.
 --
 --   Needs Windows, PowerShell 7 at its default path, ReaImGui 0.10 or newer (ReaTeam
---   Extensions repository) and an OpenAI-compatible chat endpoint such as Ollama.
+--   Extensions repository) and an OpenAI-compatible chat endpoint such as Ollama. Anthropic's
+--   Claude models can be added beside it, with your own API key.
 --
 --   Setup: copy `bridge/bridge.config.example.json` to `bridge/bridge.config.json` in the same
 --   folder and set `baseUrl` and `model`. ReaPack never updates or removes your copy. Details in
